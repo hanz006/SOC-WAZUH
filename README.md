@@ -8,7 +8,7 @@
 | 2  | M Alfaeran Auriga Ruswandi | 5027241115 |
 | 3  | S. Farhan Baig             | 5027241097 |
 
-## 📖 Executive Summary
+## Executive Summary
 
 Project ini bertujuan membangun sistem monitoring keamanan terpusat yang mampu:
 
@@ -24,7 +24,7 @@ Panduan lengkap deploy arsitektur Wazuh (1 Manager + 2 Agent) di Azure Student F
 
 ---
 
-## 🎯 Ringkasan Tugas
+## Ringkasan Tugas
 
 | # | Tahap | Output |
 |---|-------|--------|
@@ -37,7 +37,7 @@ Panduan lengkap deploy arsitektur Wazuh (1 Manager + 2 Agent) di Azure Student F
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 ### Security Monitoring
 
@@ -62,14 +62,15 @@ Panduan lengkap deploy arsitektur Wazuh (1 Manager + 2 Agent) di Azure Student F
 
 ### Infrastructure
 
-- Microsoft Azure Cloud
 - Wazuh SIEM
 - OpenSearch Indexer
+- Wazuh Dashboard
+- Wazuh Agent
 - Nginx Web Server
 
 ---
 
-## 🏗️ Arsitektur Sistem
+## Arsitektur Sistem
 
 ```
                      ┌──────────────────────────┐
@@ -94,7 +95,7 @@ Panduan lengkap deploy arsitektur Wazuh (1 Manager + 2 Agent) di Azure Student F
                        └────────────────┘
 ```
 
-## 🎯 Security Objectives
+## Security Objectives
 
 Project ini dirancang untuk memenuhi beberapa tujuan keamanan berikut:
 
@@ -121,16 +122,14 @@ Project ini dirancang untuk memenuhi beberapa tujuan keamanan berikut:
 
 ---
 
-## ✅ Prasyarat
+## Prasyarat
 
-- Akun Azure for Students aktif (https://azure.microsoft.com/free/students)
-- Azure CLI ter-install lokal: `az --version`
 - SSH key: `~/.ssh/id_rsa.pub` (kalau belum ada: `ssh-keygen -t rsa -b 4096`)
 - Bash / WSL / Git Bash (untuk menjalankan script `.sh`)
 
 ---
 
-## 🚀 Langkah Pengerjaan
+## Langkah Pengerjaan
 
 ### Step 1 — Login & Setup Azure
 
@@ -392,13 +391,6 @@ ssh azureuser@<MANAGER_IP> 'sudo bash' < scripts/soar/09-deploy-shuffle.sh
 
 Dokumentasi yang direkomendasikan:
 
-### Azure Deployment
-
-- Resource Group
-- Virtual Network
-- Network Security Group
-- Virtual Machines
-
 ### Wazuh Dashboard
 
 - Agent Status
@@ -489,7 +481,7 @@ Beberapa pengembangan yang dapat dilakukan:
 
 ---
 
-# 📊 Materi Presentasi (PPT)
+# Materi Presentasi (PPT)
 
 Bagian ini berisi materi siap pakai untuk slide presentasi tugas. Setiap sub-bagian mewakili satu kelompok slide (3–4 slide). Diagram menggunakan **Mermaid** — bisa langsung di-render di GitHub/Kiro/VS Code, lalu di-screenshot atau di-export sebagai PNG untuk dimasukkan ke PowerPoint.
 
@@ -500,7 +492,7 @@ Bagian ini berisi materi siap pakai untuk slide presentasi tugas. Setiap sub-bag
 
 ---
 
-## 🧭 Bagian 1 — Arsitektur Sistem
+## Bagian 1 — Arsitektur Sistem
 
 ### Slide 1.1 — Judul & Tujuan
 
@@ -615,114 +607,42 @@ sequenceDiagram
 
 ---
 
-## ☁️ Bagian 2 — Deployment Azure
+## Konfigurasi Wazuh
 
-### Slide 2.1 — Topologi Azure
+Bagian ini menjelaskan proses instalasi dan konfigurasi Wazuh yang digunakan untuk mengumpulkan, memproses, dan menganalisis log keamanan secara terpusat.
 
-```mermaid
-%%{init: {'theme':'base','themeVariables':{'fontFamily':'Segoe UI, Arial','fontSize':'15px','primaryColor':'#ffffff','primaryTextColor':'#1a1a1a','primaryBorderColor':'#37474f','lineColor':'#263238','clusterBkg':'#f5f5f5','clusterBorder':'#546e7a'}}}%%
-flowchart TB
-    Internet(("Internet")):::net
+### Komponen Wazuh
 
-    subgraph RG["Resource Group: rg-wazuh"]
-        subgraph VNet["VNet: vnet-wazuh &middot; 10.10.0.0/16"]
-            subgraph Subnet["Subnet: snet-wazuh &middot; 10.10.1.0/24"]
-                VM1["<b>wazuh-manager</b><br/>10.10.1.4"]:::mgr
-                VM2["<b>wazuh-agent-1</b><br/>10.10.1.5"]:::agt
-                VM3["<b>wazuh-agent-2</b><br/>10.10.1.6"]:::agt
-            end
-            NSG["<b>NSG: nsg-wazuh</b><br/>7 inbound rules"]:::nsg
-            NSG -. attached .- Subnet
-        end
+| Komponen        | Fungsi                                            |
+| --------------- | ------------------------------------------------- |
+| Wazuh Manager   | Menerima log, menjalankan decoder dan rule engine |
+| Wazuh Indexer   | Menyimpan dan melakukan indexing alert            |
+| Wazuh Dashboard | Menampilkan visualisasi dan analisis alert        |
+| Wazuh Agent     | Mengumpulkan log dari endpoint                    |
 
-        PIP1["<b>Public IP</b><br/>20.212.106.11"]:::pip
-        PIP2["<b>Public IP</b><br/>20.212.25.217"]:::pip
-        PIP3["<b>Public IP</b><br/>4.194.3.48"]:::pip
+### Alur Kerja
 
-        PIP1 --- VM1
-        PIP2 --- VM2
-        PIP3 --- VM3
-    end
+1. Endpoint menghasilkan log aktivitas.
+2. Wazuh Agent membaca log dari endpoint.
+3. Log dikirim ke Wazuh Manager.
+4. Manager melakukan decoding dan rule matching.
+5. Alert disimpan ke Wazuh Indexer.
+6. Dashboard menampilkan hasil analisis kepada analyst.
 
-    Internet --> NSG
+### Tujuan Konfigurasi
 
-    classDef mgr fill:#1976d2,color:#ffffff,stroke:#0d47a1,stroke-width:2px
-    classDef agt fill:#fb8c00,color:#ffffff,stroke:#e65100,stroke-width:2px
-    classDef nsg fill:#e53935,color:#ffffff,stroke:#b71c1c,stroke-width:2px
-    classDef pip fill:#00897b,color:#ffffff,stroke:#004d40,stroke-width:2px
-    classDef net fill:#5e35b1,color:#ffffff,stroke:#311b92,stroke-width:2px
-```
+* Monitoring keamanan secara real-time
+* Deteksi aktivitas mencurigakan
+* Analisis serangan DDoS
+* Analisis SSH Brute Force
+* Sentralisasi log keamanan
 
-**Talking points:**
-- Semua resource dikelompokkan dalam **1 Resource Group** untuk kemudahan cleanup (`az group delete`).
-- VNet privat dengan 1 subnet — agent ↔ manager komunikasi via **private IP** (lebih aman & stabil).
-- 1 NSG diterapkan ke subnet, mengontrol akses inbound dari Internet.
 
 ---
 
-### Slide 2.2 — Network Security Group (Firewall Rules)
+## Bagian 2 — Konfigurasi Wazuh
 
-| Rule | Port | Protokol | Tujuan |
-|------|------|----------|--------|
-| `allow-ssh` | 22 | TCP | Akses SSH untuk admin |
-| `allow-http` | 80 | TCP | Layanan Nginx (target serangan) |
-| `allow-https` | 443 | TCP | Wazuh Dashboard |
-| `allow-wazuh-agent` | 1514 | TCP | Komunikasi agent → manager |
-| `allow-wazuh-enroll` | 1515 | TCP | Enrollment agent baru |
-| `allow-indexer` | 9200 | TCP | API Wazuh Indexer (debug) |
-| `allow-wazuh-api` | 55000 | TCP | Wazuh REST API |
-
-**Talking points:**
-- Prinsip *least-privilege*: hanya port yang perlu yang dibuka.
-- Untuk produksi, port 9200 dan 55000 sebaiknya dibatasi ke IP admin saja (bukan `*`).
-- Port 80/443 di agent sengaja dibuka publik karena memang **target serangan PoC**.
-
----
-
-### Slide 2.3 — Spesifikasi VM (Free Tier Friendly)
-
-| VM | Size | vCPU | RAM | Disk | OS |
-|----|------|------|-----|------|----|
-| `wazuh-manager` | Standard_B2s | 2 | 4 GB | 30 GB | Ubuntu 22.04 LTS |
-| `wazuh-agent-1` | Standard_B1s | 1 | 1 GB | 30 GB | Ubuntu 22.04 LTS |
-| `wazuh-agent-2` | Standard_B1s | 1 | 1 GB | 30 GB | Ubuntu 22.04 LTS |
-
-**Talking points:**
-- Manager butuh ≥ 4 GB RAM karena menjalankan 3 service Java (Indexer, Manager, Filebeat).
-- Agent ringan — `Standard_B1s` cukup untuk Nginx + agent.
-- Total estimasi biaya: ~ Rp 0 dengan **Azure for Students** (credit $100/tahun).
-
----
-
-### Slide 2.4 — Workflow Deployment Otomatis
-
-```mermaid
-%%{init: {'theme':'base','themeVariables':{'fontFamily':'Segoe UI, Arial','fontSize':'15px','primaryTextColor':'#1a1a1a','lineColor':'#263238'}}}%%
-flowchart LR
-    A["<b>1. Edit config</b><br/>RG, region, size"]:::start --> B["<b>2. Run script</b><br/>01-azure-deploy.sh"]:::step
-    B --> C["az group<br/>create"]:::az
-    C --> D["az network<br/>vnet create"]:::az
-    D --> E["az network<br/>nsg create<br/>+ 7 rules"]:::az
-    E --> F["az vm create<br/>&times; 3"]:::az
-    F --> G["<b>inventory.txt</b><br/>public + private IP"]:::done
-
-    classDef start fill:#fff59d,color:#1a1a1a,stroke:#f9a825,stroke-width:2px
-    classDef step  fill:#1976d2,color:#ffffff,stroke:#0d47a1,stroke-width:2px
-    classDef az    fill:#0288d1,color:#ffffff,stroke:#01579b,stroke-width:2px
-    classDef done  fill:#43a047,color:#ffffff,stroke:#1b5e20,stroke-width:2px
-```
-
-**Talking points:**
-- Seluruh provisioning **otomatis via Azure CLI** dalam satu script (`01-azure-deploy.sh`).
-- Idempotent: aman dijalankan ulang.
-- Output `inventory.txt` jadi sumber kebenaran untuk step selanjutnya.
-- Estimasi waktu: ~5–7 menit untuk 3 VM.
-
----
-
-## 🛡️ Bagian 3 — Konfigurasi Wazuh
-
-### Slide 3.1 — Stack Wazuh All-in-One
+### Slide 2.1 — Stack Wazuh All-in-One
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{'fontFamily':'Segoe UI, Arial','fontSize':'15px','primaryTextColor':'#1a1a1a','lineColor':'#263238','clusterBkg':'#f5f5f5','clusterBorder':'#546e7a'}}}%%
@@ -760,7 +680,7 @@ flowchart TB
 
 ---
 
-### Slide 3.2 — Instalasi Manager (Tahap)
+### Slide 2.2 — Instalasi Manager (Tahap)
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{'fontFamily':'Segoe UI, Arial','fontSize':'15px','primaryTextColor':'#1a1a1a','lineColor':'#263238'}}}%%
@@ -784,7 +704,7 @@ flowchart LR
 
 ---
 
-### Slide 3.3 — Enrollment Agent
+### Slide 2.3 — Enrollment Agent
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{'fontFamily':'Segoe UI, Arial','fontSize':'15px','actorBkg':'#1976d2','actorTextColor':'#ffffff','actorLineColor':'#0d47a1','signalColor':'#4484a3ff','signalTextColor':'#ffffffff','noteBkgColor':'#fff59d','noteTextColor':'#1a1a1a','noteBorderColor':'#f9a825'}}}%%
@@ -811,7 +731,7 @@ sequenceDiagram
 
 ---
 
-### Slide 3.4 — Konfigurasi Log Forwarding (Nginx)
+### Slide 2.4 — Konfigurasi Log Forwarding (Nginx)
 
 **File:** `/var/ossec/etc/ossec.conf` (di agent)
 
@@ -834,7 +754,7 @@ sequenceDiagram
 
 ---
 
-### Slide 3.5 — Custom Rules untuk Deteksi DDoS
+### Slide 2.5 — Custom Rules untuk Deteksi DDoS
 
 **File:** `/var/ossec/etc/rules/local_rules.xml` (di manager)
 
@@ -863,7 +783,7 @@ sequenceDiagram
 
 ---
 
-### Slide 3.6 — Verifikasi Deteksi (Setelah PoC)
+### Slide 2.6 — Verifikasi Deteksi (Setelah PoC)
 
 **Cek manual di manager:**
 ```bash
@@ -882,7 +802,7 @@ sudo bash scripts/06-analyze-alerts.sh
 
 ---
 
-## 🔍 Detection Capabilities
+## Detection Capabilities
 
 Wazuh dikonfigurasi untuk melakukan deteksi terhadap:
 
@@ -904,7 +824,7 @@ Custom rules menggunakan kombinasi:
 
 ---
 
-## 🎯 Ringkasan untuk Slide Penutup
+## Ringkasan untuk Slide Penutup
 
 ```mermaid
 mindmap
