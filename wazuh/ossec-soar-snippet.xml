@@ -1,0 +1,77 @@
+<!--
+  Snippet konfigurasi SOAR untuk Wazuh Manager.
+  Salin blok yang dibutuhkan ke /var/ossec/etc/ossec.conf
+  di dalam <ossec_config>...</ossec_config>, lalu restart wazuh-manager.
+
+  Atau gunakan script otomatis:
+    sudo bash scripts/soar/07-setup-active-response.sh
+    sudo DISCORD_WEBHOOK="..." bash scripts/soar/08-setup-discord-webhook.sh
+-->
+
+<!-- =========================================================
+     LAYER 1 — Active Response (auto block IP)
+     ========================================================= -->
+<command>
+  <name>firewall-drop</name>
+  <executable>firewall-drop</executable>
+  <timeout_allowed>yes</timeout_allowed>
+</command>
+
+<active-response>
+  <command>firewall-drop</command>
+  <location>local</location>
+  <rules_id>100100,100101,100102,100103</rules_id>
+  <timeout>600</timeout>
+</active-response>
+
+
+<!-- =========================================================
+     LAYER 2 — Notification Webhook (Discord / Slack)
+     Pilih salah satu, atau pakai dua-duanya.
+     ========================================================= -->
+
+<!-- Discord (butuh script custom-discord di /var/ossec/integrations/) -->
+<integration>
+  <name>custom-discord</name>
+  <hook_url>https://discord.com/api/webhooks/REPLACE_ME</hook_url>
+  <level>10</level>
+  <group>ddos,attack,authentication_failed,web</group>
+  <alert_format>json</alert_format>
+</integration>
+
+<!-- Discord - Malware Detection Alerts -->
+<integration>
+  <name>custom-discord-malware</name>
+  <hook_url>https://discord.com/api/webhooks/REPLACE_ME</hook_url>
+  <level>10</level>
+  <group>malware,suspicious_execution,file_integrity,backdoor,trojan,file_creation,download,code_injection,trojan_beacon</group>
+  <alert_format>json</alert_format>
+</integration>
+
+<!-- Discord - Critical Malware Alerts (Level 12+) -->
+<integration>
+  <name>custom-discord-critical</name>
+  <hook_url>https://discord.com/api/webhooks/REPLACE_CRITICAL_ME</hook_url>
+  <level>12</level>
+  <group>malware</group>
+  <alert_format>json</alert_format>
+</integration>
+
+<!-- Slack (built-in, no extra script) -->
+<integration>
+  <name>slack</name>
+  <hook_url>https://hooks.slack.com/services/REPLACE_ME</hook_url>
+  <level>10</level>
+  <alert_format>json</alert_format>
+</integration>
+
+
+<!-- =========================================================
+     LAYER 3 — Shuffle SOAR Webhook
+     ========================================================= -->
+<integration>
+  <name>shuffle</name>
+  <hook_url>http://SHUFFLE_HOST:3001/api/v1/hooks/webhook_REPLACE_ME</hook_url>
+  <level>8</level>
+  <alert_format>json</alert_format>
+</integration>

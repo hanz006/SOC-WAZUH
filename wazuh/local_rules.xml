@@ -1,0 +1,107 @@
+<!--
+  Custom rules untuk deteksi DDoS pada Wazuh Manager.
+  Letakkan di: /var/ossec/etc/rules/local_rules.xml
+  Lalu restart: systemctl restart wazuh-manager
+-->
+<group name="ddos,attack,web,custom,">
+
+  <!-- Banyak request HTTP dari satu sumber dalam waktu singkat -->
+  <rule id="100100" level="10" frequency="200" timeframe="30">
+    <if_matched_sid>31100</if_matched_sid>
+    <same_source_ip />
+    <description>Possible HTTP flood: 200+ requests in 30s from same IP</description>
+    <group>ddos,http_flood,</group>
+  </rule>
+
+  <!-- Repeated 4xx/5xx pada window pendek -->
+  <rule id="100101" level="12" frequency="300" timeframe="60">
+    <if_matched_sid>31101</if_matched_sid>
+    <same_source_ip />
+    <description>HTTP error spike from same IP: possible scanning / DoS</description>
+    <group>ddos,web_scan,</group>
+  </rule>
+
+  <!-- Slowloris: koneksi banyak tapi belum complete -->
+  <rule id="100102" level="11" frequency="100" timeframe="120">
+    <if_matched_sid>31108</if_matched_sid>
+    <same_source_ip />
+    <description>Slow HTTP attack pattern detected</description>
+    <group>ddos,slowloris,</group>
+  </rule>
+
+  <!-- Generic: high request rate ke satu URL -->
+  <rule id="100103" level="9" frequency="500" timeframe="60">
+    <if_matched_sid>31100</if_matched_sid>
+    <description>High request rate detected (possible DDoS)</description>
+    <group>ddos,</group>
+  </rule>
+
+  <!-- ================= MALWARE DETECTION ================= -->
+
+  <!-- Suspicious file execution di /tmp atau /dev/shm -->
+  <rule id="100200" level="12">
+    <if_group>process_started,</if_group>
+    <field name="exe">/tmp|/dev/shm|/var/tmp</field>
+    <description>Suspicious process execution from temporary directory (possible malware)</description>
+    <group>malware,suspicious_execution,</group>
+  </rule>
+
+  <!-- File write dari script ke system directory -->
+  <rule id="100201" level="11">
+    <if_group>file_changed,</if_group>
+    <field name="path">/usr/bin|/usr/local/bin|/sbin|/usr/sbin</field>
+    <regex>\.sh$|\.py$|\.pl$</regex>
+    <description>Suspicious script modification in system binary directory</description>
+    <group>malware,file_integrity,</group>
+  </rule>
+
+  <!-- Reverse shell pattern: process dengan output ke network socket -->
+  <rule id="100202" level="13">
+    <if_group>process_started,</if_group>
+    <regex>bash.*-i.*\/dev\/tcp|nc.*-l|ncat|socat</regex>
+    <description>Potential reverse shell / backdoor execution detected</description>
+    <group>malware,backdoor,</group>
+  </rule>
+
+  <!-- Trojan: process spawn dari non-standard location -->
+  <rule id="100203" level="11">
+    <if_group>process_started,</if_group>
+    <field name="parent_exe">/tmp|/home/.*/.cache|/var/tmp</field>
+    <description>Process spawned from suspicious parent directory (trojan indicator)</description>
+    <group>malware,trojan,</group>
+  </rule>
+
+  <!-- Multiple suspicious files created in rapid succession -->
+  <rule id="100204" level="12" frequency="10" timeframe="10">
+    <if_group>file_created,</if_group>
+    <field name="path">/tmp|/dev/shm|/var/tmp</field>
+    <description>Multiple suspicious files created rapidly (possible malware deployment)</description>
+    <group>malware,file_creation,</group>
+  </rule>
+
+  <!-- Suspicious curl/wget download -->
+  <rule id="100205" level="10">
+    <if_group>process_started,</if_group>
+    <regex>curl.*http.*-o|wget.*http.*-O</regex>
+    <description>Suspicious download attempt (possible malware dropper)</description>
+    <group>malware,download,</group>
+  </rule>
+
+  <!-- Trojan beacon: repeated outbound connection to same external IP -->
+  <rule id="100206" level="11" frequency="50" timeframe="300">
+    <if_group>network_connection,</if_group>
+    <field name="dst_ip">^(?!192\.168\.|10\.|172\.1[6-9]\.|172\.2[0-9]\.|172\.3[01]\.)</field>
+    <same_dst_ip />
+    <description>Repeated connection to external IP (trojan beacon pattern)</description>
+    <group>malware,trojan_beacon,</group>
+  </rule>
+
+  <!-- File containing suspicious strings (trojan signature) -->
+  <rule id="100207" level="10">
+    <if_group>file_changed,</if_group>
+    <regex>eval|system|passthru|exec|shell_exec|proc_open</regex>
+    <description>Suspicious PHP/code keywords in file (possible trojan code)</description>
+    <group>malware,code_injection,</group>
+  </rule>
+
+</group>

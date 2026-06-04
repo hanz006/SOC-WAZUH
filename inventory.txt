@@ -1,0 +1,41 @@
+wazuh-manager  public=20.212.106.11  private=10.10.1.4
+wazuh-agent-1  public=20.212.25.217  private=10.10.1.5
+wazuh-agent-2  public=4.194.3.48  private=10.10.1.6
+
+
+# Admin user for the web user interface and Wazuh indexer. Use this user to log in to Wazuh dashboard
+  indexer_username: 'admin'
+  indexer_password: 'GAau07Z86+ShzzIrnQ4aUsHEj8gjUhk8'
+
+# Anomaly detection user for the web user interface
+  indexer_username: 'anomalyadmin'
+  indexer_password: 'Em7M1ILqdC6EV+OX39PCQFeurJn7xTlp'
+
+# Wazuh dashboard user for establishing the connection with Wazuh indexer
+  indexer_username: 'kibanaserver'
+  indexer_password: 'KQyZsE1XupoEiD9*57quadmazGjY55+g'
+
+# Regular Dashboard user, only has read permissions to all indices and all permissions on the .kibana index
+  indexer_username: 'kibanaro'
+  indexer_password: 'Ywx1t4e2DEyY1eDelYniD1+iCZRi+tO.'
+
+
+# Filebeat user for CRUD operations on Wazuh indices
+  indexer_username: 'logstash'
+  indexer_password: 'f6AKPub5Twdnh8pO*tKoDuioRz1e+A2+'
+
+# User with READ access to all indices
+  indexer_username: 'readall'
+  indexer_password: 'ZV1u1QQTd4Oc*bO7cXo8iLyqHG.A5xyw'
+
+# User with permissions to perform snapshot and restore operations
+  indexer_username: 'snapshotrestore'
+  indexer_password: 'YDIqciH7VWxC6KI+HVu1c?XD5T00M3a1'
+
+# Password for wazuh API user
+  api_username: 'wazuh'
+  api_password: 'UIBUhqedixoBpl9tMWe++kEg.Fqq71MU'
+
+# Password for wazuh-wui API user
+  api_username: 'wazuh-wui'
+  api_password: '?gCT4S81d86nFJ3.qLWTHiqCtbwla.qd'
