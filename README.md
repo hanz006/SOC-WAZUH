@@ -21,7 +21,7 @@ Pengujian dilakukan melalui simulasi beberapa jenis serangan DDoS, yaitu **HTTP 
 # Link Video Demo
 | Demo |
 |--------|
-| (nanti link video dimasukin sini)) |
+| (nanti link video dimasukin sini) |
 
 ---
 
