@@ -6,6 +6,7 @@
 | -- | -------------------------- | ---------- |
 | 1  | Mochamad Rizki Nasrullah   | 5027241038 |
 | 2  | M Alfaeran Auriga Ruswandi | 5027241115 |
+| 3  | S. Farhan Baig             | 5027241097 |
 
 ---
 
@@ -26,7 +27,6 @@ Pengujian dilakukan melalui simulasi beberapa jenis serangan DDoS, yaitu **HTTP 
 
 ## Daftar Isi
 
-* [Link Video Demo](#link-video-demo)
 * [Arsitektur Sistem](#arsitektur-sistem)
 * [Deployment Azure](#deployment-azure)
 * [Konfigurasi Wazuh](#konfigurasi-wazuh)
